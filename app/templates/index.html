@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Quotation Scanner</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Quotation Scanner</h1>
+            <a href="/settings" class="settings-link">Settings</a>
+        </header>
+
+        <main>
+            <section class="user-section">
+                <h2>Select User</h2>
+                <div id="userList" class="user-list">
+                    <p class="loading">Loading users...</p>
+                </div>
+            </section>
+
+            <section class="scan-section">
+                <h2>Scan Quotation</h2>
+                <div class="input-group">
+                    <label for="quotationInput">Quotation Number:</label>
+                    <input
+                        type="text"
+                        id="quotationInput"
+                        placeholder="Scan or enter quotation number..."
+                        autocomplete="off"
+                        disabled
+                    >
+                </div>
+                <button id="scanButton" class="btn btn-primary" disabled>Process Scan</button>
+            </section>
+
+            <section class="status-section">
+                <div id="statusMessage" class="status-message"></div>
+            </section>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

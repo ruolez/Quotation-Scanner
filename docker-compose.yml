@@ -1,0 +1,13 @@
+services:
+  quotation-scan:
+    build: .
+    container_name: quotation-scan-app
+    ports:
+      - "5555:5000"
+    volumes:
+      - ./data:/app/data
+      - ./app:/app/app
+    environment:
+      - FLASK_ENV=development
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped

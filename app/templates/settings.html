@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Settings - Quotation Scanner</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Settings</h1>
+            <a href="/" class="settings-link">Back to Scanner</a>
+        </header>
+
+        <main>
+            <!-- SQL Server Configuration -->
+            <section class="settings-section">
+                <h2>SQL Server Configuration</h2>
+                <form id="sqlConfigForm">
+                    <div class="form-group">
+                        <label for="server">Server:</label>
+                        <input type="text" id="server" name="server" placeholder="localhost or IP address" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="database">Database:</label>
+                        <input type="text" id="database" name="database" placeholder="Database name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="username">Username:</label>
+                        <input type="text" id="username" name="username" placeholder="SQL Server username" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password:</label>
+                        <input type="password" id="password" name="password" placeholder="SQL Server password" required>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="button" id="testConnectionBtn" class="btn btn-secondary">Test Connection</button>
+                        <button type="submit" class="btn btn-primary">Save Configuration</button>
+                    </div>
+                </form>
+                <div id="sqlStatusMessage" class="status-message"></div>
+            </section>
+
+            <!-- User Management -->
+            <section class="settings-section">
+                <h2>User Management</h2>
+
+                <form id="addUserForm">
+                    <div class="form-group">
+                        <label for="userName">Add New User:</label>
+                        <div class="inline-form">
+                            <input type="text" id="userName" name="userName" placeholder="Enter user name" required>
+                            <button type="submit" class="btn btn-primary">Add User</button>
+                        </div>
+                    </div>
+                </form>
+
+                <div id="userStatusMessage" class="status-message"></div>
+
+                <div class="user-list-container">
+                    <h3>Current Users</h3>
+                    <div id="userListSettings" class="user-list-settings">
+                        <p class="loading">Loading users...</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
+</body>
+</html>
