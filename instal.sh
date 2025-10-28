@@ -121,6 +121,24 @@ get_local_ip() {
     done
 }
 
+# Check Docker Compose status and show diagnostics
+check_docker_status() {
+    cd "$INSTALL_DIR" 2>/dev/null || return 1
+
+    print_info "Docker Compose Status:"
+    docker compose ps
+
+    echo ""
+    print_info "Running Containers:"
+    docker ps --filter "name=quotation-scan" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+
+    echo ""
+    print_info "Docker Networks:"
+    docker network ls --filter "name=quotation-scan"
+
+    return 0
+}
+
 ################################################################################
 # Installation Functions
 ################################################################################
@@ -226,21 +244,43 @@ build_and_start() {
 
     cd "$INSTALL_DIR"
 
-    print_info "Building Docker images..."
+    print_info "Building Docker images (this may take a few minutes)..."
     docker compose build
 
     print_info "Starting containers..."
     docker compose up -d
 
-    print_info "Waiting for application to start..."
-    sleep 5
+    print_info "Waiting for application to initialize..."
+    sleep 8
 
-    # Check if container is running
-    if docker compose ps | grep -q "Up"; then
+    # Check container status
+    print_info "Checking container status..."
+    CONTAINER_STATUS=$(docker compose ps --format json 2>/dev/null | grep -o '"State":"[^"]*"' | cut -d'"' -f4)
+
+    if [ -z "$CONTAINER_STATUS" ]; then
+        print_error "No containers found!"
+        print_info "Attempting to show logs:"
+        docker compose logs --tail=50
+        exit 1
+    fi
+
+    if echo "$CONTAINER_STATUS" | grep -q "running"; then
+        print_success "Container is running!"
+
+        # Show container details
+        echo ""
+        print_info "Container Status:"
+        docker compose ps
+        echo ""
         print_success "Application started successfully!"
     else
-        print_error "Failed to start application"
-        print_info "Check logs with: cd $INSTALL_DIR && docker compose logs"
+        print_error "Container failed to start properly"
+        print_info "Container status: $CONTAINER_STATUS"
+        echo ""
+        print_info "Showing last 50 lines of logs:"
+        docker compose logs --tail=50
+        echo ""
+        print_error "Installation failed. Check logs above for errors."
         exit 1
     fi
 }
@@ -260,32 +300,73 @@ update_application() {
 
     cd "$INSTALL_DIR"
 
+    # Show current status
+    print_info "Current container status:"
+    docker compose ps || true
+
     print_info "Backing up data directory..."
     if [ -d "data" ]; then
         cp -r data data.backup.$(date +%Y%m%d_%H%M%S)
         print_success "Data backed up"
     fi
 
-    print_info "Stopping containers..."
-    docker compose down
+    print_info "Stopping and removing containers..."
+    docker compose down --remove-orphans
+
+    print_info "Removing old images..."
+    docker compose rm -f || true
 
     print_info "Pulling latest changes from GitHub..."
     git pull origin main
+    print_success "Code updated from GitHub"
 
-    print_info "Rebuilding containers..."
-    docker compose build
+    print_info "Cleaning Docker cache..."
+    docker builder prune -f || true
+
+    print_info "Rebuilding containers (this may take a minute)..."
+    docker compose build --no-cache
 
     print_info "Starting containers..."
     docker compose up -d
 
-    print_info "Waiting for application to start..."
-    sleep 5
+    print_info "Waiting for application to initialize..."
+    sleep 8
 
-    if docker compose ps | grep -q "Up"; then
+    # Check container status
+    print_info "Checking container status..."
+    CONTAINER_STATUS=$(docker compose ps --format json 2>/dev/null | grep -o '"State":"[^"]*"' | cut -d'"' -f4)
+
+    if [ -z "$CONTAINER_STATUS" ]; then
+        print_error "No containers found!"
+        print_info "Attempting to show logs:"
+        docker compose logs --tail=50
+        exit 1
+    fi
+
+    if echo "$CONTAINER_STATUS" | grep -q "running"; then
+        print_success "Container is running!"
+
+        # Show container details
+        echo ""
+        print_info "Container Status:"
+        docker compose ps
+        echo ""
+
+        # Get the port from docker-compose.yml
+        EXPOSED_PORT=$(grep -A1 "ports:" docker-compose.yml | grep -o "[0-9]*:[0-9]*" | cut -d':' -f1)
+
         print_success "Application updated successfully!"
+        print_success "Access the app at: http://$(hostname -I | awk '{print $1}'):${EXPOSED_PORT:-5555}"
+        echo ""
+        print_info "To view logs: cd $INSTALL_DIR && docker compose logs -f"
     else
-        print_error "Failed to start application after update"
-        print_info "Check logs with: cd $INSTALL_DIR && docker compose logs"
+        print_error "Container failed to start properly"
+        print_info "Container status: $CONTAINER_STATUS"
+        echo ""
+        print_info "Showing last 50 lines of logs:"
+        docker compose logs --tail=50
+        echo ""
+        print_error "Update failed. Check logs above for errors."
         exit 1
     fi
 }
@@ -363,8 +444,9 @@ show_menu() {
     echo ""
     echo "  1) Install - Fresh installation on clean system"
     echo "  2) Update  - Pull latest changes from GitHub and rebuild"
-    echo "  3) Remove  - Complete removal of application"
-    echo "  4) Exit"
+    echo "  3) Status  - Check application and container status"
+    echo "  4) Remove  - Complete removal of application"
+    echo "  5) Exit"
     echo ""
 }
 
@@ -408,7 +490,7 @@ check_root
 if [ $# -eq 0 ]; then
     while true; do
         show_menu
-        read -p "Enter your choice [1-4]: " choice
+        read -p "Enter your choice [1-5]: " choice
 
         case $choice in
             1)
@@ -420,10 +502,21 @@ if [ $# -eq 0 ]; then
                 break
                 ;;
             3)
+                print_header "Application Status"
+                if check_docker_status; then
+                    echo ""
+                    print_info "To view live logs: cd $INSTALL_DIR && docker compose logs -f"
+                else
+                    print_error "Application not found or not running"
+                fi
+                echo ""
+                read -p "Press Enter to continue..."
+                ;;
+            4)
                 remove_application
                 break
                 ;;
-            4)
+            5)
                 print_info "Exiting..."
                 exit 0
                 ;;
@@ -441,11 +534,20 @@ else
         update)
             update_application
             ;;
+        status)
+            print_header "Application Status"
+            if check_docker_status; then
+                echo ""
+                print_info "To view live logs: cd $INSTALL_DIR && docker compose logs -f"
+            else
+                print_error "Application not found or not running"
+            fi
+            ;;
         remove)
             remove_application
             ;;
         *)
-            echo "Usage: $0 [install|update|remove]"
+            echo "Usage: $0 [install|update|status|remove]"
             echo "Or run without arguments for interactive menu"
             exit 1
             ;;
