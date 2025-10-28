@@ -5,7 +5,6 @@ let recentScans = JSON.parse(localStorage.getItem('recentScans') || '[]');
 
 // DOM Elements
 const userList = document.getElementById('userList');
-const userCount = document.getElementById('userCount');
 const selectedUserDisplay = document.getElementById('selectedUserDisplay');
 const selectedUserName = document.getElementById('selectedUserName');
 const quotationInput = document.getElementById('quotationInput');
@@ -43,21 +42,14 @@ async function loadUsers() {
 
         if (data.success && data.users.length > 0) {
             allUsers = data.users.sort((a, b) => a.name.localeCompare(b.name));
-            updateUserCount(allUsers.length);
             renderUsers(allUsers);
         } else {
             userList.innerHTML = '<p class="loading">No users found. Please add users in Settings.</p>';
-            updateUserCount(0);
         }
     } catch (error) {
         console.error('Error loading users:', error);
         userList.innerHTML = '<p class="loading error">Error loading users. Please check your connection.</p>';
     }
-}
-
-// Update user count display
-function updateUserCount(count) {
-    userCount.textContent = `${count} user${count !== 1 ? 's' : ''}`;
 }
 
 // Render users

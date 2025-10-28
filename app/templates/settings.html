@@ -13,11 +13,46 @@
     <div class="container">
         <header>
             <h1>Settings</h1>
+            <a href="/" class="header-icon-link" aria-label="Back to Scanner">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M19 12H5M5 12l7 7M5 12l7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </a>
         </header>
 
         <div id="statusBanner" class="status-banner"></div>
 
         <main>
+            <!-- User Management -->
+            <section class="settings-section">
+                <div class="section-header">
+                    <h2>User Management</h2>
+                    <span id="userCount" class="user-count"></span>
+                </div>
+
+                <div class="add-user-container">
+                    <h3>Add New User</h3>
+                    <form id="addUserForm" class="add-user-form">
+                        <input type="text" id="userName" name="userName" placeholder="Enter user name" required>
+                        <button type="submit" class="btn btn-primary btn-compact">
+                            <span class="btn-text">Add User</span>
+                            <span class="btn-spinner" style="display: none;">
+                                <svg class="spinner" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M10 2a8 8 0 0 1 8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </span>
+                        </button>
+                    </form>
+                </div>
+
+                <div class="current-users-container">
+                    <h3>Current Users</h3>
+                    <div id="userListSettings" class="user-list-settings">
+                        <p class="loading">Loading users...</p>
+                    </div>
+                </div>
+            </section>
+
             <!-- SQL Server Configuration -->
             <section class="settings-section">
                 <div class="section-header">
@@ -64,41 +99,7 @@
                     </div>
                 </form>
             </section>
-
-            <!-- User Management -->
-            <section class="settings-section">
-                <div class="section-header">
-                    <h2>User Management</h2>
-                    <span id="userCount" class="user-count"></span>
-                </div>
-
-                <div class="add-user-container">
-                    <h3>Add New User</h3>
-                    <form id="addUserForm" class="add-user-form">
-                        <input type="text" id="userName" name="userName" placeholder="Enter user name" required>
-                        <button type="submit" class="btn btn-primary btn-compact">
-                            <span class="btn-text">Add User</span>
-                            <span class="btn-spinner" style="display: none;">
-                                <svg class="spinner" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M10 2a8 8 0 0 1 8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                </svg>
-                            </span>
-                        </button>
-                    </form>
-                </div>
-
-                <div class="current-users-container">
-                    <h3>Current Users</h3>
-                    <div id="userListSettings" class="user-list-settings">
-                        <p class="loading">Loading users...</p>
-                    </div>
-                </div>
-            </section>
         </main>
-
-        <footer>
-            <a href="/" class="footer-settings-link">Back to Scanner</a>
-        </footer>
     </div>
 
     <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
