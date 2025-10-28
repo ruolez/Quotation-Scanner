@@ -4,6 +4,20 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  /* Smooth theme transitions */
+  transition:
+    background-color 200ms ease-in-out,
+    color 200ms ease-in-out,
+    border-color 200ms ease-in-out,
+    box-shadow 200ms ease-in-out;
+}
+
+/* Disable transitions for elements that need immediate feedback */
+*:focus,
+*:active,
+.spinner,
+[data-no-transition] {
+  transition: none;
 }
 
 :root {
@@ -37,6 +51,40 @@
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
+}
+
+/* Dark Theme - Google Material Design 3 */
+:root[data-theme="dark"] {
+  /* Backgrounds - Material Design standard */
+  --background: #121212;
+  --surface: #1e1e1e;
+  --surface-elevated: #282828;
+
+  /* Primary Colors - Google's signature dark mode blue */
+  --primary: #8ab4f8;
+  --primary-hover: #adc6ff;
+  --primary-light: rgba(138, 180, 248, 0.15);
+
+  /* Semantic Colors - Google's dark mode palette */
+  --error: #f28b82;
+  --error-light: rgba(242, 139, 130, 0.15);
+  --success: #81c995;
+  --success-light: rgba(129, 201, 149, 0.15);
+  --warning: #fdd663;
+  --warning-light: rgba(253, 214, 99, 0.15);
+
+  /* Text Colors - Google's dark mode text */
+  --on-surface: #e8eaed;
+  --on-surface-variant: #9aa0a6;
+  --secondary: #9aa0a6;
+
+  /* Borders - Google's dark mode borders */
+  --outline: #3c4043;
+  --outline-variant: #5f6368;
+
+  /* Shadows - Darker for dark mode */
+  --shadow: rgba(0, 0, 0, 0.5);
+  --shadow-light: rgba(0, 0, 0, 0.3);
 }
 
 body {
@@ -85,6 +133,12 @@ header h1 {
   color: var(--on-surface);
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .header-icon-link {
   color: var(--on-surface);
   text-decoration: none;
@@ -94,6 +148,10 @@ header h1 {
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
 }
 
 .header-icon-link:hover {

@@ -162,6 +162,9 @@ async function processScan() {
     // Validate user selection
     if (!selectedUser) {
         showStatus('Please select a user first', 'error');
+        setTimeout(() => {
+            location.reload();
+        }, 5000);
         return;
     }
 
@@ -169,6 +172,9 @@ async function processScan() {
     if (!quotationNumber) {
         showStatus('Please enter a quotation number', 'error');
         quotationInput.focus();
+        setTimeout(() => {
+            location.reload();
+        }, 5000);
         return;
     }
 
@@ -204,7 +210,7 @@ async function processScan() {
             // Success
             const scanType = data.scan_number === 1 ? 'First' : 'Second';
             showStatus(
-                `✓ ${scanType} scan successful! Quotation: ${quotationNumber} at ${data.timestamp}. Refreshing in 5 seconds...`,
+                `✓ ${scanType} scan successful! Quotation: ${quotationNumber} at ${data.timestamp}`,
                 'success'
             );
 
@@ -218,7 +224,7 @@ async function processScan() {
             }, 5000);
         } else {
             // Error from server
-            showStatus(`${data.error || 'An error occurred'}. Refreshing in 5 seconds...`, 'error');
+            showStatus(data.error || 'An error occurred', 'error');
 
             // Clear input
             quotationInput.value = '';
@@ -233,7 +239,7 @@ async function processScan() {
         console.error('Error processing scan:', error);
         btnText.style.display = 'inline';
         btnSpinner.style.display = 'none';
-        showStatus('Network error. Please check your connection and try again. Refreshing in 5 seconds...', 'error');
+        showStatus('Network error. Please check your connection and try again', 'error');
 
         // Clear input
         quotationInput.value = '';
@@ -297,7 +303,7 @@ function renderRecentScans() {
         }
 
         item.innerHTML = `
-            <svg class="scan-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg class="scan-icon" width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M7.5 10L9.5 12L13 8M19 10a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
             <div class="scan-details">

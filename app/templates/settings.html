@@ -8,16 +8,30 @@
     <meta http-equiv="Expires" content="0">
     <title>Settings - Quotation Scanner</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Initialize theme before body renders to prevent flash -->
+    <script>
+        (function() {
+            const THEME_KEY = 'quotation-scanner-theme';
+            const stored = localStorage.getItem(THEME_KEY);
+            const theme = stored || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>Settings</h1>
-            <a href="/" class="header-icon-link" aria-label="Back to Scanner">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M19 12H5M5 12l7 7M5 12l7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </a>
+            <div class="header-actions">
+                <button id="themeToggle" class="header-icon-link" aria-label="Toggle theme">
+                    <!-- Icon will be inserted by theme.js -->
+                </button>
+                <a href="/" class="header-icon-link" aria-label="Back to Scanner">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M19 12H5M5 12l7 7M5 12l7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </a>
+            </div>
         </header>
 
         <div id="statusBanner" class="status-banner"></div>
@@ -103,5 +117,6 @@
     </div>
 
     <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
 </body>
 </html>
