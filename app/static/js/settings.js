@@ -1,11 +1,14 @@
+// Global state
+let allUsers = [];
+
 // DOM Elements
 const sqlConfigForm = document.getElementById('sqlConfigForm');
 const testConnectionBtn = document.getElementById('testConnectionBtn');
-const sqlStatusMessage = document.getElementById('sqlStatusMessage');
+const statusBanner = document.getElementById('statusBanner');
 
 const addUserForm = document.getElementById('addUserForm');
-const userStatusMessage = document.getElementById('userStatusMessage');
 const userListSettings = document.getElementById('userListSettings');
+const userCount = document.getElementById('userCount');
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -19,6 +22,9 @@ function setupEventListeners() {
     sqlConfigForm.addEventListener('submit', saveSQLConfig);
     testConnectionBtn.addEventListener('click', testConnection);
     addUserForm.addEventListener('submit', addUser);
+
+    // Dismiss status banner on click
+    statusBanner.addEventListener('click', hideStatus);
 }
 
 // ==================== SQL Configuration ====================
@@ -65,6 +71,15 @@ async function saveSQLConfig(e) {
         password: document.getElementById('password').value
     };
 
+    const submitBtn = sqlConfigForm.querySelector('.btn-primary');
+    const btnText = submitBtn.querySelector('.btn-text');
+    const btnSpinner = submitBtn.querySelector('.btn-spinner');
+
+    // Show loading state
+    submitBtn.disabled = true;
+    btnText.style.display = 'none';
+    btnSpinner.style.display = 'inline-flex';
+
     try {
         const response = await fetch('/api/sql-connection', {
             method: 'POST',
@@ -78,15 +93,20 @@ async function saveSQLConfig(e) {
         const data = await response.json();
 
         if (data.success) {
-            showSQLStatus('SQL Server configuration saved successfully!', 'success');
+            showStatus('✓ SQL Server configuration saved successfully!', 'success');
             document.getElementById('password').value = '';
             document.getElementById('password').placeholder = '••••••••';
         } else {
-            showSQLStatus(data.error || 'Failed to save configuration', 'error');
+            showStatus(data.error || 'Failed to save configuration', 'error');
         }
     } catch (error) {
         console.error('Error saving SQL config:', error);
-        showSQLStatus('Network error. Please try again.', 'error');
+        showStatus('Network error. Please try again.', 'error');
+    } finally {
+        // Reset button
+        submitBtn.disabled = false;
+        btnText.style.display = 'inline';
+        btnSpinner.style.display = 'none';
     }
 }
 
@@ -100,13 +120,17 @@ async function testConnection() {
     };
 
     if (!config.server || !config.database || !config.username || !config.password) {
-        showSQLStatus('Please fill in all fields to test connection', 'error');
+        showStatus('Please fill in all fields to test connection', 'error');
         return;
     }
 
+    const btnText = testConnectionBtn.querySelector('.btn-text');
+    const btnSpinner = testConnectionBtn.querySelector('.btn-spinner');
+
     // Show loading state
     testConnectionBtn.disabled = true;
-    testConnectionBtn.textContent = 'Testing...';
+    btnText.style.display = 'none';
+    btnSpinner.style.display = 'inline-flex';
 
     try {
         const response = await fetch('/api/test-connection', {
@@ -121,29 +145,19 @@ async function testConnection() {
         const data = await response.json();
 
         if (data.success) {
-            showSQLStatus('Connection successful!', 'success');
+            showStatus('✓ Connection successful! Database is accessible.', 'success');
         } else {
-            showSQLStatus(`Connection failed: ${data.error}`, 'error');
+            showStatus(`Connection failed: ${data.error}`, 'error');
         }
     } catch (error) {
         console.error('Error testing connection:', error);
-        showSQLStatus('Network error. Please try again.', 'error');
+        showStatus('Network error. Please try again.', 'error');
     } finally {
         // Reset button
         testConnectionBtn.disabled = false;
-        testConnectionBtn.textContent = 'Test Connection';
+        btnText.style.display = 'inline';
+        btnSpinner.style.display = 'none';
     }
-}
-
-// Show SQL status message
-function showSQLStatus(message, type) {
-    sqlStatusMessage.textContent = message;
-    sqlStatusMessage.className = `status-message ${type}`;
-
-    // Auto-hide after 5 seconds
-    setTimeout(() => {
-        sqlStatusMessage.className = 'status-message';
-    }, 5000);
 }
 
 // ==================== User Management ====================
@@ -165,8 +179,12 @@ async function loadUsers() {
         const data = await response.json();
 
         if (data.success && data.users.length > 0) {
-            renderUsers(data.users);
+            allUsers = data.users.sort((a, b) => a.name.localeCompare(b.name));
+            updateUserCount(allUsers.length);
+            renderUsers(allUsers);
         } else {
+            allUsers = [];
+            updateUserCount(0);
             userListSettings.innerHTML = '<p class="loading">No users yet. Add your first user above.</p>';
         }
     } catch (error) {
@@ -175,9 +193,19 @@ async function loadUsers() {
     }
 }
 
+// Update user count display
+function updateUserCount(count) {
+    userCount.textContent = `${count} user${count !== 1 ? 's' : ''}`;
+}
+
 // Render users
 function renderUsers(users) {
     userListSettings.innerHTML = '';
+
+    if (users.length === 0) {
+        userListSettings.innerHTML = '<p class="loading">No matching users found.</p>';
+        return;
+    }
 
     users.forEach(user => {
         const userItem = document.createElement('div');
@@ -190,7 +218,7 @@ function renderUsers(users) {
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'btn btn-danger';
         deleteBtn.textContent = 'Delete';
-        deleteBtn.addEventListener('click', () => deleteUser(user.id));
+        deleteBtn.addEventListener('click', () => deleteUser(user.id, user.name));
 
         userItem.appendChild(userName);
         userItem.appendChild(deleteBtn);
@@ -206,9 +234,18 @@ async function addUser(e) {
     const userName = document.getElementById('userName').value.trim();
 
     if (!userName) {
-        showUserStatus('Please enter a user name', 'error');
+        showStatus('Please enter a user name', 'error');
         return;
     }
+
+    const submitBtn = addUserForm.querySelector('.btn-primary');
+    const btnText = submitBtn.querySelector('.btn-text');
+    const btnSpinner = submitBtn.querySelector('.btn-spinner');
+
+    // Show loading state
+    submitBtn.disabled = true;
+    btnText.style.display = 'none';
+    btnSpinner.style.display = 'inline-flex';
 
     try {
         const response = await fetch('/api/users', {
@@ -223,21 +260,26 @@ async function addUser(e) {
         const data = await response.json();
 
         if (data.success) {
-            showUserStatus('User added successfully!', 'success');
+            showStatus(`✓ User "${userName}" added successfully!`, 'success');
             document.getElementById('userName').value = '';
             loadUsers(); // Reload user list
         } else {
-            showUserStatus(data.error || 'Failed to add user', 'error');
+            showStatus(data.error || 'Failed to add user', 'error');
         }
     } catch (error) {
         console.error('Error adding user:', error);
-        showUserStatus('Network error. Please try again.', 'error');
+        showStatus('Network error. Please try again.', 'error');
+    } finally {
+        // Reset button
+        submitBtn.disabled = false;
+        btnText.style.display = 'inline';
+        btnSpinner.style.display = 'none';
     }
 }
 
 // Delete user
-async function deleteUser(userId) {
-    if (!confirm('Are you sure you want to delete this user?')) {
+async function deleteUser(userId, userName) {
+    if (!confirm(`Are you sure you want to delete "${userName}"?`)) {
         return;
     }
 
@@ -252,24 +294,34 @@ async function deleteUser(userId) {
         const data = await response.json();
 
         if (data.success) {
-            showUserStatus('User deleted successfully', 'success');
+            showStatus(`✓ User "${userName}" deleted successfully`, 'success');
             loadUsers(); // Reload user list
         } else {
-            showUserStatus(data.error || 'Failed to delete user', 'error');
+            showStatus(data.error || 'Failed to delete user', 'error');
         }
     } catch (error) {
         console.error('Error deleting user:', error);
-        showUserStatus('Network error. Please try again.', 'error');
+        showStatus('Network error. Please try again.', 'error');
     }
 }
 
-// Show user status message
-function showUserStatus(message, type) {
-    userStatusMessage.textContent = message;
-    userStatusMessage.className = `status-message ${type}`;
+// ==================== Status Messages ====================
+
+// Show status banner
+function showStatus(message, type) {
+    statusBanner.textContent = message;
+    statusBanner.className = `status-banner ${type}`;
+    statusBanner.style.cursor = 'pointer';
+    statusBanner.title = 'Click to dismiss';
 
     // Auto-hide after 5 seconds
     setTimeout(() => {
-        userStatusMessage.className = 'status-message';
+        hideStatus();
     }, 5000);
+}
+
+// Hide status banner
+function hideStatus() {
+    statusBanner.className = 'status-banner';
+    statusBanner.textContent = '';
 }

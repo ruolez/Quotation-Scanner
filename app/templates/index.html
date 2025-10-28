@@ -13,36 +13,86 @@
     <div class="container">
         <header>
             <h1>Quotation Scanner</h1>
-            <a href="/settings" class="settings-link">Settings</a>
         </header>
 
+        <div id="statusBanner" class="status-banner"></div>
+
         <main>
-            <section class="user-section">
-                <h2>Select User</h2>
-                <div id="userList" class="user-list">
-                    <p class="loading">Loading users...</p>
-                </div>
-            </section>
+            <div class="content-grid">
+                <section class="user-section">
+                    <div class="section-header">
+                        <h2>Select User</h2>
+                        <span id="userCount" class="user-count"></span>
+                    </div>
+                    <div id="userList" class="user-list">
+                        <p class="loading">Loading users...</p>
+                    </div>
+                </section>
 
-            <section class="scan-section">
-                <h2>Scan Quotation</h2>
-                <div class="input-group">
-                    <label for="quotationInput">Quotation Number:</label>
-                    <input
-                        type="text"
-                        id="quotationInput"
-                        placeholder="Scan or enter quotation number..."
-                        autocomplete="off"
-                        disabled
-                    >
-                </div>
-                <button id="scanButton" class="btn btn-primary" disabled>Process Scan</button>
-            </section>
+                <section class="scan-section">
+                    <div class="section-header">
+                        <h2>Scan Quotation</h2>
+                    </div>
 
-            <section class="status-section">
-                <div id="statusMessage" class="status-message"></div>
-            </section>
+                    <div id="selectedUserDisplay" class="selected-user-display" style="display: none;">
+                        <div class="selected-user-info">
+                            <svg class="user-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M10 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM3 18a7 7 0 1 1 14 0" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <div class="selected-user-text">
+                                <span class="selected-label">Selected User:</span>
+                                <span id="selectedUserName" class="selected-name"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="scan-form">
+                        <div class="input-group">
+                            <label for="quotationInput">Quotation Number</label>
+                            <div class="input-with-icon">
+                                <svg class="input-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <rect x="3" y="4" width="2" height="12" fill="currentColor"/>
+                                    <rect x="6" y="4" width="1" height="12" fill="currentColor"/>
+                                    <rect x="8" y="4" width="2" height="12" fill="currentColor"/>
+                                    <rect x="11" y="4" width="1" height="12" fill="currentColor"/>
+                                    <rect x="13" y="4" width="2" height="12" fill="currentColor"/>
+                                    <rect x="16" y="4" width="1" height="12" fill="currentColor"/>
+                                </svg>
+                                <input
+                                    type="text"
+                                    id="quotationInput"
+                                    placeholder="Scan or enter quotation number..."
+                                    autocomplete="off"
+                                    disabled
+                                >
+                                <button type="button" id="clearInput" class="clear-input" style="display: none;" aria-label="Clear input">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <button id="scanButton" class="btn btn-primary" disabled>
+                            <span class="btn-text">Process Scan</span>
+                            <span class="btn-spinner" style="display: none;">
+                                <svg class="spinner" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M10 2a8 8 0 0 1 8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
+
+                    <div id="recentScans" class="recent-scans" style="display: none;">
+                        <h3>Recent Scans</h3>
+                        <div id="recentScansList" class="recent-scans-list"></div>
+                    </div>
+                </section>
+            </div>
         </main>
+
+        <footer>
+            <a href="/settings" class="footer-settings-link">Settings</a>
+        </footer>
     </div>
 
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
