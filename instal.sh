@@ -24,7 +24,7 @@ NC='\033[0m' # No Color
 # Configuration
 APP_NAME="Quotation-Scanner"
 INSTALL_DIR="/opt/quotation-scanner"
-REPO_URL="https://github.com/YOUR_USERNAME/Quotation-Scanner.git"
+REPO_URL="https://github.com/ruolez/Quotation-Scanner.git"
 DEFAULT_PORT="5555"
 
 ################################################################################
