@@ -7,7 +7,11 @@ RUN apt-get update && apt-get install -y \
     unixodbc-dev \
     gcc \
     g++ \
+    tzdata \
     && rm -rf /var/lib/apt/lists/*
+
+# Set timezone to Central Time (Chicago)
+ENV TZ=America/Chicago
 
 # Set working directory
 WORKDIR /app

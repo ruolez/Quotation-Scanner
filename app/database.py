@@ -3,6 +3,7 @@ import pymssql
 import json
 import os
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from typing import Optional, Dict, List, Any
 
 # SQLite database path
@@ -192,8 +193,8 @@ class SQLServerManager:
 
             quotation_id, qnum, packer, dop2, dop3, account_no = row
 
-            # Get current timestamp
-            current_time = datetime.now()
+            # Get current timestamp in Central Time (Chicago)
+            current_time = datetime.now(ZoneInfo('America/Chicago'))
             timestamp = current_time.strftime('%m/%d/%Y %I:%M %p')
 
             # Check if this quotation was scanned within the last 2 minutes
@@ -203,7 +204,7 @@ class SQLServerManager:
             # Check Dop3 first (most recent if it exists)
             if dop3 and dop3.strip():
                 try:
-                    most_recent_time = datetime.strptime(dop3.strip(), '%m/%d/%Y %I:%M %p')
+                    most_recent_time = datetime.strptime(dop3.strip(), '%m/%d/%Y %I:%M %p').replace(tzinfo=ZoneInfo('America/Chicago'))
                     most_recent_scan = 'second'
                 except ValueError:
                     pass
@@ -211,7 +212,7 @@ class SQLServerManager:
             # Check Dop2 if Dop3 wasn't valid or doesn't exist
             if not most_recent_time and dop2 and dop2.strip():
                 try:
-                    most_recent_time = datetime.strptime(dop2.strip(), '%m/%d/%Y %I:%M %p')
+                    most_recent_time = datetime.strptime(dop2.strip(), '%m/%d/%Y %I:%M %p').replace(tzinfo=ZoneInfo('America/Chicago'))
                     most_recent_scan = 'first'
                 except ValueError:
                     pass
