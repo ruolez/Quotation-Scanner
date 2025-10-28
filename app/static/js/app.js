@@ -205,7 +205,7 @@ async function processScan() {
 
         if (data.success) {
             // Add to recent scans
-            addRecentScan(quotationNumber, data.scan_number);
+            addRecentScan(quotationNumber, data.scan_number, data.timestamp, data.account_no);
 
             // Success
             const scanType = data.scan_number === 1 ? 'First' : 'Second';
@@ -253,12 +253,13 @@ async function processScan() {
 }
 
 // Add recent scan to history
-function addRecentScan(quotationNumber, scanNumber) {
+function addRecentScan(quotationNumber, scanNumber, timestamp, accountNo) {
     const scan = {
         quotation: quotationNumber,
         scanNumber: scanNumber,
-        timestamp: new Date().toISOString(),
-        user: selectedUser.name
+        timestamp: timestamp,
+        user: selectedUser.name,
+        accountNo: accountNo || 'N/A'
     };
 
     // Add to beginning of array
@@ -288,27 +289,30 @@ function renderRecentScans() {
         const item = document.createElement('div');
         item.className = 'recent-scan-item';
 
-        const timestamp = new Date(scan.timestamp);
-        const now = new Date();
-        const diffMinutes = Math.floor((now - timestamp) / 1000 / 60);
-
-        let timeAgo;
-        if (diffMinutes < 1) {
-            timeAgo = 'Just now';
-        } else if (diffMinutes < 60) {
-            timeAgo = `${diffMinutes} min ago`;
-        } else {
-            const diffHours = Math.floor(diffMinutes / 60);
-            timeAgo = `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-        }
+        const scanType = scan.scanNumber === 1 ? '1st' : '2nd';
+        const scanTypeClass = scan.scanNumber === 1 ? 'first-scan' : 'second-scan';
+        const accountDisplay = scan.accountNo && scan.accountNo !== 'N/A' ? scan.accountNo : '—';
 
         item.innerHTML = `
-            <svg class="scan-icon" width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M7.5 10L9.5 12L13 8M19 10a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <div class="scan-details">
+            <div class="scan-cell scan-cell-icon">
+                <svg class="scan-icon" width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M7.5 10L9.5 12L13 8M19 10a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="scan-cell scan-cell-quotation">
                 <span class="scan-number">${scan.quotation}</span>
-                <span class="scan-time">${timeAgo}</span>
+            </div>
+            <div class="scan-cell scan-cell-badge">
+                <span class="scan-badge ${scanTypeClass}">${scanType}</span>
+            </div>
+            <div class="scan-cell scan-cell-user">
+                <span class="scan-meta">${scan.user}</span>
+            </div>
+            <div class="scan-cell scan-cell-time">
+                <span class="scan-meta">${scan.timestamp}</span>
+            </div>
+            <div class="scan-cell scan-cell-account">
+                <span class="scan-meta scan-account">${accountDisplay}</span>
             </div>
         `;
 
@@ -330,12 +334,6 @@ function hideStatus() {
     statusBanner.textContent = '';
 }
 
-// Update recent scans time periodically
-setInterval(() => {
-    if (recentScans.length > 0) {
-        renderRecentScans();
-    }
-}, 30000);
 
 // Auto-refresh users every 30 seconds
 setInterval(() => {

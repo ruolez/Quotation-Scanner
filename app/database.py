@@ -176,7 +176,7 @@ class SQLServerManager:
 
             # Look up quotation by QuotationNumber
             cursor.execute('''
-                SELECT id, QuotationNumber, Packer, Dop2, Dop3
+                SELECT id, QuotationNumber, Packer, Dop2, Dop3, AccountNo
                 FROM dbo.QuotationsStatus
                 WHERE QuotationNumber = %s
             ''', (quotation_number,))
@@ -190,10 +190,53 @@ class SQLServerManager:
                     'error': f'Quotation number {quotation_number} not found'
                 }
 
-            quotation_id, qnum, packer, dop2, dop3 = row
+            quotation_id, qnum, packer, dop2, dop3, account_no = row
 
-            # Get current timestamp in US format
-            timestamp = datetime.now().strftime('%m/%d/%Y %I:%M %p')
+            # Get current timestamp
+            current_time = datetime.now()
+            timestamp = current_time.strftime('%m/%d/%Y %I:%M %p')
+
+            # Check if this quotation was scanned within the last 2 minutes
+            most_recent_scan = None
+            most_recent_time = None
+
+            # Check Dop3 first (most recent if it exists)
+            if dop3 and dop3.strip():
+                try:
+                    most_recent_time = datetime.strptime(dop3.strip(), '%m/%d/%Y %I:%M %p')
+                    most_recent_scan = 'second'
+                except ValueError:
+                    pass
+
+            # Check Dop2 if Dop3 wasn't valid or doesn't exist
+            if not most_recent_time and dop2 and dop2.strip():
+                try:
+                    most_recent_time = datetime.strptime(dop2.strip(), '%m/%d/%Y %I:%M %p')
+                    most_recent_scan = 'first'
+                except ValueError:
+                    pass
+
+            # If we found a recent scan, check if it's within 2 minutes
+            if most_recent_time:
+                time_diff = (current_time - most_recent_time).total_seconds()
+                if time_diff < 120:  # 120 seconds = 2 minutes
+                    seconds_ago = int(time_diff)
+                    seconds_remaining = 120 - seconds_ago
+                    minutes_remaining = seconds_remaining // 60
+                    secs_remaining = seconds_remaining % 60
+
+                    if minutes_remaining > 0:
+                        wait_msg = f"{minutes_remaining} minute(s) {secs_remaining} second(s)"
+                    else:
+                        wait_msg = f"{secs_remaining} second(s)"
+
+                    conn.close()
+                    return {
+                        'success': False,
+                        'error': f'Quotation {quotation_number} was scanned {seconds_ago} second(s) ago. Please wait {wait_msg} before scanning again.',
+                        'seconds_ago': seconds_ago,
+                        'seconds_remaining': seconds_remaining
+                    }
 
             # Determine which field to update
             if not dop2 or dop2.strip() == '':
@@ -211,7 +254,8 @@ class SQLServerManager:
                     'success': True,
                     'message': f'First scan recorded for quotation {quotation_number}',
                     'scan_number': 1,
-                    'timestamp': timestamp
+                    'timestamp': timestamp,
+                    'account_no': account_no
                 }
 
             elif not dop3 or dop3.strip() == '':
@@ -229,7 +273,8 @@ class SQLServerManager:
                     'success': True,
                     'message': f'Second scan recorded for quotation {quotation_number}',
                     'scan_number': 2,
-                    'timestamp': timestamp
+                    'timestamp': timestamp,
+                    'account_no': account_no
                 }
 
             else:
